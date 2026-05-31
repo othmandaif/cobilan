@@ -2,33 +2,44 @@
 
 ERP comptable marocain — Frontend React + ERPNext v16 headless.
 
-## 1. Lancer ERPNext avec Docker
+## 1. Lancer ERPNext avec Docker (port 8080)
 
 ```bash
-# Cloner le repo Frappe Bench (ou utiliser une instance existante)
+# Cloner le repo Frappe Bench
 git clone https://github.com/frappe/frappe_docker
 cd frappe_docker
 
 # Créer le dossier pour les projets
 mkdir -p sites
 
-# Lancer les services (PostgreSQL, Redis, etc.)
-docker compose -f pwd.yml up -d
+# Créer un docker-compose.override.yml pour exposer sur le port 8080
+cat > docker-compose.override.yml <<EOF
+version: "3.8"
+services:
+  frontend:
+    ports:
+      - "8080:8080"
+  backend:
+    ports:
+      - "8080:8000"
+EOF
+
+# Lancer les services
+docker compose -f pwd.yml -f docker-compose.override.yml up -d
 
 # Créer un site
-docker compose -f pwd.yml run --rm backend bench new-site cobilan.localhost --mariadb-root-password admin --admin-password admin
+docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench new-site cobilan.localhost --mariadb-root-password admin --admin-password admin
 
 # Installer ERPNext
-docker compose -f pwd.yml run --rm backend bench --site cobilan.localhost install-app erpnext
+docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench --site cobilan.localhost install-app erpnext
 
-# Récupérer l'adresse IP du conteneur backend
-docker inspect $(docker ps -q -f name=backend) | grep IPAddress
+# Ajouter dans le hosts (Windows : C:\Windows\System32\drivers\etc\hosts)
+# 127.0.0.1 cobilan.localhost
 
-# Le site est accessible sur http://cobilan.localhost:8000
-# Ajouter dans le hosts : <IP> cobilan.localhost
+# ERPNext est accessible sur http://cobilan.localhost:8080
 ```
 
-**Alternative** — utilisateur avec instance ERPNext existante, fournir simplement l'URL de l'API.
+> **Alternative** — si vous avez déjà une instance ERPNext, utilisez son URL dans la configuration.
 
 ## 2. Lancer le frontend
 
