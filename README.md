@@ -1,17 +1,71 @@
-# React + Vite
+# CoBilan
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ERP comptable marocain — Frontend React + ERPNext v16 headless.
 
-Currently, two official plugins are available:
+## 1. Lancer ERPNext avec Docker
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+# Cloner le repo Frappe Bench (ou utiliser une instance existante)
+git clone https://github.com/frappe/frappe_docker
+cd frappe_docker
 
-## React Compiler
+# Créer le dossier pour les projets
+mkdir -p sites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Lancer les services (PostgreSQL, Redis, etc.)
+docker compose -f pwd.yml up -d
 
-## Expanding the ESLint configuration
+# Créer un site
+docker compose -f pwd.yml run --rm backend bench new-site cobilan.localhost --mariadb-root-password admin --admin-password admin
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# cobilan
+# Installer ERPNext
+docker compose -f pwd.yml run --rm backend bench --site cobilan.localhost install-app erpnext
+
+# Récupérer l'adresse IP du conteneur backend
+docker inspect $(docker ps -q -f name=backend) | grep IPAddress
+
+# Le site est accessible sur http://cobilan.localhost:8000
+# Ajouter dans le hosts : <IP> cobilan.localhost
+```
+
+**Alternative** — utilisateur avec instance ERPNext existante, fournir simplement l'URL de l'API.
+
+## 2. Lancer le frontend
+
+```bash
+# Installer les dépendances
+npm install
+
+# Lancer en développement
+npm run dev
+
+# Build production
+npm run build
+```
+
+L'application tourne sur `http://localhost:5173` (par défaut Vite).
+
+Le proxy Vite redirige `/api` vers `http://localhost:8080` (configurable dans `vite.config.js`).
+
+## 3. Configuration
+
+Créer un fichier `.env.local` :
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+L'API attend un header `Authorization: token <api_key>:<api_secret>` pour les mutations (POST/PUT/DELETE). Les sessions sont gérées par cookie.
+
+## 4. Authentification
+
+Se connecter avec les identifiants ERPNext via la page `/login`. L'utilisateur doit avoir les rôles appropriés (Comptable, Manager, etc.).
+
+## Stack
+
+- React 19 + Vite 8
+- Tailwind CSS v4
+- React Router v7
+- Recharts (graphiques)
+- Tesseract.js (OCR client-side)
+- ERPNext v16 REST API
