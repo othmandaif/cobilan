@@ -28,18 +28,13 @@ EOF
 docker compose -f pwd.yml -f docker-compose.override.yml up -d
 
 # Créer un site
-docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench new-site cobilan.localhost --mariadb-root-password admin --admin-password admin
+docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench new-site localhost --mariadb-root-password admin --admin-password admin
 
 # Installer ERPNext
-docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench --site cobilan.localhost install-app erpnext
+docker compose -f pwd.yml -f docker-compose.override.yml run --rm backend bench --site localhost install-app erpnext
 
-# Ajouter dans le hosts (Windows : C:\Windows\System32\drivers\etc\hosts)
-# 127.0.0.1 cobilan.localhost
-
-# ERPNext est accessible sur http://cobilan.localhost:8080
+# ERPNext est accessible sur http://localhost:8080
 ```
-
-> **Alternative** — si vous avez déjà une instance ERPNext, utilisez son URL dans la configuration.
 
 ## 2. Lancer le frontend
 
